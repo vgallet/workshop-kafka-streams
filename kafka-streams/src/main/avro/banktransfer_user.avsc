@@ -1,0 +1,13 @@
+{"namespace": "bank.transfer.avro",
+  "type": "record",
+  "name": "BankTransferWithUser",
+  "fields": [
+    {"name": "banktransfer_amount", "type": "double"},
+    {"name": "banktransfer_debtor", "type": "string"},
+    {"name": "banktransfer_credit", "type": "string"},
+    {"name": "banktransfer_date", "type": "string"},
+    {"name": "banktransfer_location", "type": "string"},
+    {"name": "user_name", "type": "string"},
+    {"name": "user_city", "type": "string"}
+  ]
+}

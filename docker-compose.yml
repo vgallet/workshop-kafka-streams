@@ -22,8 +22,7 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_METRIC_REPORTERS: "io.confluent.metrics.reporter.ConfluentMetricsReporter"
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: "kafka:9092"
@@ -48,6 +47,10 @@ services:
       cub kafka-ready -b kafka:9092 1 300 && \
       echo Creating topics... && \
       kafka-topics --bootstrap-server kafka:9092 --create --topic bank-transfer --partitions 3 --replication-factor 1 && \
+      kafka-topics --bootstrap-server kafka:9092 --create --topic alert-huge-amount --partitions 3 --replication-factor 1 && \
+      kafka-topics --bootstrap-server kafka:9092 --create --topic alert-too-much-operations --partitions 3 --replication-factor 1 && \
+      kafka-topics --bootstrap-server kafka:9092 --create --topic alert-different-location --partitions 3 --replication-factor 1 && \
+      kafka-topics --bootstrap-server kafka:9092 --create --topic bank-transfer-user --partitions 3 --replication-factor 1 && \
       kafka-topics --bootstrap-server kafka:9092 --create --topic user-balance --partitions 3 --replication-factor 1 --config cleanup.policy=compact && \
       kafka-topics --bootstrap-server kafka:9092 --create --topic user --partitions 3 --replication-factor 1 --config cleanup.policy=compact'"
 

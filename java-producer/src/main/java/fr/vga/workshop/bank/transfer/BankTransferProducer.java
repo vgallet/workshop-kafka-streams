@@ -17,6 +17,8 @@ import java.nio.file.Paths;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class BankTransferProducer {
@@ -65,24 +67,29 @@ public class BankTransferProducer {
         List<String> bankTransferRows = Files.readAllLines(bankTransferPath);
 
         bankTransferRows.stream()
-            .map(row -> {
-                String[] split = row.split(";");
-                return BankTransfer.newBuilder()
-                        .setAmount(Double.valueOf(split[2]))
-                        .setCredit(split[0])
-                        .setDebtor(split[1])
-                        .setDate(new Date().toString())
-                        .setLocalisation(split[3])
-                        .build();
-            }).forEach(bankTransfer -> {
-                final ProducerRecord<String, BankTransfer> record = new ProducerRecord(BANK_TRANSFER_TOPIC, bankTransfer.getCredit(), bankTransfer);
-                bankTransferProducer.send(record, (md, e) -> {
+                .map(row -> {
+                    String[] split = row.split(";");
+                    return BankTransfer.newBuilder()
+                            .setAmount(Double.valueOf(split[2]))
+                            .setCredit(split[0])
+                            .setDebtor(split[1])
+                            .setDate(new Date().toString())
+                            .setLocation(split[3])
+                            .build();
+                }).forEach(bankTransfer -> {
+            final ProducerRecord<String, BankTransfer> record = new ProducerRecord(BANK_TRANSFER_TOPIC, bankTransfer.getCredit(), bankTransfer);
+            bankTransferProducer.send(record, (md, e) -> {
                 if (e != null) {
                     System.out.println(e);
                 } else {
                     System.out.println("Envoi " + bankTransfer.toString());
                 }
             });
+            try {
+                Thread.sleep((long) Math.floor(Math.random()*(5000-500+1)+500));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         });
     }
 }

@@ -6,6 +6,6 @@
         {"name": "debtor", "type": "string"},
         {"name": "credit", "type": "string"},
         {"name": "date", "type": "string"},
-        {"name": "localisation", "type": "string"}
+        {"name": "location", "type": "string"}
     ]
 }
