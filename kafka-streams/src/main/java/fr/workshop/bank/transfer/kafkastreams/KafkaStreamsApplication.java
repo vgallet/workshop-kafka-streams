@@ -1,11 +1,14 @@
 package fr.workshop.bank.transfer.kafkastreams;
 
 import bank.transfer.avro.*;
+import fr.workshop.bank.transfer.UserBalanceServer;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.*;
 import org.apache.kafka.streams.kstream.*;
+import org.apache.kafka.streams.state.KeyValueStore;
 
 import java.time.Duration;
 import java.util.*;
@@ -21,8 +24,10 @@ public class KafkaStreamsApplication {
     private static final String BANK_TRANSFER_TOPIC = "bank-transfer";
     private static final String BANK_TRANSFER_USER_TOPIC = "bank-transfer-user";
     private static final String USER_BALANCE_TOPIC = "user-balance";
+    public static final String BALANCE_VIEW = "BALANCE_VIEW";
+    public static final String APPLICATION_SERVER = "localhost:8090";
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         System.out.println(">>> Starting the streams-app Application");
 
         final Properties settings = new Properties();
@@ -30,17 +35,31 @@ public class KafkaStreamsApplication {
         settings.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
         settings.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         settings.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
+        settings.put(StreamsConfig.APPLICATION_SERVER_CONFIG, APPLICATION_SERVER);
+        // TODO 06
+        settings.put(StreamsConfig.PROCESSING_GUARANTEE_CONFIG, StreamsConfig.EXACTLY_ONCE);
 
         Topology topology = createTopology();
         System.out.println(topology.describe());
+
         final KafkaStreams streams = new KafkaStreams(topology, settings);
+        streams.setGlobalStateRestoreListener(new ConsoleGlobalRestoreListerner());
+
+        streams.start();
+
+        UserBalanceServer server = new UserBalanceServer(streams);
+        server.start();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             System.out.println("<<< Stopping the streams-app Application");
             streams.close();
+            try {
+                server.stop();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }));
 
-        streams.start();
     }
 
     private static Topology createTopology() {
@@ -119,34 +138,35 @@ public class KafkaStreamsApplication {
 
 
         // TODO 05
+        Materialized<String, UserBalance, KeyValueStore<Bytes, byte[]>> balanceStore = Materialized.<String, UserBalance, KeyValueStore<Bytes, byte[]>>as(BALANCE_VIEW)
+                .withKeySerde(Serdes.String())
+                .withValueSerde(userBalanceSerde);
+
         bankTransferKStream
-            .flatMap((KeyValueMapper<String, BankTransfer, Iterable<KeyValue<String, UserOperation>>>) (key, value) -> {
-                UserOperation creditOperation = new UserOperation(value.getCredit(), -value.getAmount());
-                UserOperation debtorOperation = new UserOperation(value.getDebtor(), value.getAmount());
+                .flatMap((KeyValueMapper<String, BankTransfer, Iterable<KeyValue<String, UserOperation>>>) (key, value) -> {
+                    UserOperation creditOperation = new UserOperation(value.getCredit(), -value.getAmount());
+                    UserOperation debtorOperation = new UserOperation(value.getDebtor(), value.getAmount());
 
-                return List.of(
-                    KeyValue.pair(creditOperation.getClient().toString(), creditOperation),
-                    KeyValue.pair(debtorOperation.getClient().toString(), debtorOperation)
-                );
-            })
-            .groupByKey(Grouped.with(Serdes.String(), userOperationSerde))
-            .aggregate(
-                () -> null,
-                    (key, value, currentBalance) -> {
-                        if (currentBalance == null) {
-                            return new UserBalance(value.getClient(), value.getAmount());
-                        }
+                    return List.of(
+                            KeyValue.pair(creditOperation.getClient().toString(), creditOperation),
+                            KeyValue.pair(debtorOperation.getClient().toString(), debtorOperation)
+                    );
+                })
+                .groupByKey(Grouped.with(Serdes.String(), userOperationSerde))
+                .aggregate(
+                        () -> null,
+                        (key, value, currentBalance) -> {
+                            if (currentBalance == null) {
+                                return new UserBalance(value.getClient(), value.getAmount());
+                            }
 
-                        currentBalance.setAmount(currentBalance.getAmount() + value.getAmount());
-                        return currentBalance;
-                }, Materialized.with(Serdes.String(), userBalanceSerde))
+                            currentBalance.setAmount(currentBalance.getAmount() + value.getAmount());
+                            return currentBalance;
+                        }, balanceStore)
             .toStream()
             .to(USER_BALANCE_TOPIC, Produced.with(Serdes.String(), userBalanceSerde));
 
-
-
         return builder.build();
-
     }
 
 }

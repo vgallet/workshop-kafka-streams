@@ -126,9 +126,21 @@ The business team wants to alert the user is a bank transfer is done in a differ
 Create a `Ktable` from the `user` topic and join it with the `bankTransferKStream` Kstream using the `bankTransferWithUserJoiner` joiner.
 You will be able to compare the two locations. If the two locations are different, publish the event to the topic `alert-different-location`.
 
-
 ### TODO 05 - Compute user balance
 
-### TODO 06 - Interactive queries
+One important feature is to compute the balance of each users. Using the operator `flatMap`, split each `bankTransfert` into two `UserOperation`.
+One for the debtor and one for the credit.
+Next, `groupBy` those operations and `aggregate` them to compute each user balance. Once done, store it into a `Materialized` view using the object `balanceStore`.
 
-### TODO 07 - Unit Testing
+
+### TODO 06 - Exactly once
+
+It's really important to update the balance of our users, debtor and credit in the same transaction in order to avoid problems.
+
+To do that, simply update the settings of the application to use the semantics `exactly-once`.
+
+### TODO 07 - Interactive queries
+
+Go to the class `UserBalanceServer` and complete the method `userBalance` to query the local store `balanceStore` and return the balance of the user.
+
+### TODO 08 - Unit Testing
