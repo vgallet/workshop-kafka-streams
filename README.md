@@ -110,9 +110,7 @@ The business team wants you to alert the users a bank transfert is done with an 
 Go to the `TODO 02` and apply the filter operation in order to retain only the operations with an amount higher than 15000€.
 Then, push the result to the topic `alert-huge-amount`.
 
-### TODO 03 - Alert on too much operations
-
-If a user is doing a lot of operations in a short amount of time, it can be a potential fraud.
+### TODO 03 - Count the number of operations per user
 
 We have to count how many operations a user is doing in a time window of 3 seconds.
 

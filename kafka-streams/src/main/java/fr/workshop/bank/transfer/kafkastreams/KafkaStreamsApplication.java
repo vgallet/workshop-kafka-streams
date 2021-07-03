@@ -13,8 +13,6 @@ import org.apache.kafka.streams.state.KeyValueStore;
 import java.time.Duration;
 import java.util.*;
 
-import static org.apache.kafka.streams.kstream.Suppressed.BufferConfig.unbounded;
-
 public class KafkaStreamsApplication {
 
     public static final String USERS_TOPIC = "user";
@@ -101,22 +99,16 @@ public class KafkaStreamsApplication {
         // TODO 03
         bankTransferKStream
             .groupByKey()
-            .windowedBy(TimeWindows.of(Duration.ofMillis(1000)))
+            .windowedBy(TimeWindows.of(Duration.ofSeconds(3)))
             .count()
-            .filter((key, value) -> value >= 2)
-            .suppress(Suppressed.untilWindowCloses(unbounded()))
             .toStream()
-                .foreach(new ForeachAction<Windowed<String>, Long>() {
-                    @Override
-                    public void apply(Windowed<String> key, Long value) {
-                        System.out.println(key + " count " + value);
-                    }
-                });
-//            .to(ALERT_TOO_MUCH_OPERATIONS_TOPIC, Produced.with(timeWindowedSerdeFrom(String.class), Serdes.Long()));
+            .filter((key, value) -> value >= 2)
+            .map((Windowed<String> key, Long count) -> new KeyValue<>(key.key(), count.toString()))
+            .to(ALERT_TOO_MUCH_OPERATIONS_TOPIC, Produced.with(Serdes.String(), Serdes.String()));
 
 
         // TODO 04
-        KTable<String, User> userTable = builder.table(USERS_TOPIC, Consumed.with(Serdes.String(), userSerde));
+        KTable < String, User > userTable = builder.table(USERS_TOPIC, Consumed.with(Serdes.String(), userSerde));
 
         ValueJoiner<BankTransfer, User, BankTransferWithUser> bankTransferWithUserJoiner = (bankTransfer, user) -> {
             BankTransferWithUser bankTransferWithUser = new BankTransferWithUser();
@@ -133,7 +125,7 @@ public class KafkaStreamsApplication {
         bankTransferKStream
             .join(userTable, bankTransferWithUserJoiner)
             .through(BANK_TRANSFER_USER_TOPIC, Produced.with(Serdes.String(), bankTransferUserSerde))
-            .filter((key, value) -> value.getBanktransferLocation() != value.getUserCity())
+            .filter((key, value) -> !value.getBanktransferLocation().equals(value.getUserCity()))
             .to(ALERT_DIFFERENT_LOCATION_TOPIC, Produced.with(Serdes.String(), bankTransferUserSerde));
 
 
