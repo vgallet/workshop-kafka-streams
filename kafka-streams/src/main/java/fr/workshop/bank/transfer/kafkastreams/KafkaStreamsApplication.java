@@ -19,25 +19,18 @@ public class KafkaStreamsApplication {
     public static final String ALERT_HUGE_AMOUNT_TOPIC = "alert-huge-amount";
     public static final String ALERT_TOO_MUCH_OPERATIONS_TOPIC = "alert-too-much-operations";
     public static final String ALERT_DIFFERENT_LOCATION_TOPIC = "alert-different-location";
-    private static final String BANK_TRANSFER_TOPIC = "bank-transfer";
-    private static final String BANK_TRANSFER_USER_TOPIC = "bank-transfer-user";
-    private static final String USER_BALANCE_TOPIC = "user-balance";
+    public static final String BANK_TRANSFER_TOPIC = "bank-transfer";
+    public static final String BANK_TRANSFER_USER_TOPIC = "bank-transfer-user";
+    public static final String USER_BALANCE_TOPIC = "user-balance";
     public static final String BALANCE_VIEW = "BALANCE_VIEW";
     public static final String APPLICATION_SERVER = "localhost:8090";
 
     public static void main(String[] args) throws Exception {
         System.out.println(">>> Starting the streams-app Application");
 
-        final Properties settings = new Properties();
-        settings.put(StreamsConfig.APPLICATION_ID_CONFIG, UUID.randomUUID().toString());
-        settings.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
-        settings.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
-        settings.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
-        settings.put(StreamsConfig.APPLICATION_SERVER_CONFIG, APPLICATION_SERVER);
-        // TODO 06
-        settings.put(StreamsConfig.PROCESSING_GUARANTEE_CONFIG, StreamsConfig.EXACTLY_ONCE);
+        final Properties settings = configuration();
 
-        Topology topology = createTopology();
+        Topology topology = createTopology("http://schema-registry:8081");
         System.out.println(topology.describe());
 
         final KafkaStreams streams = new KafkaStreams(topology, settings);
@@ -60,9 +53,21 @@ public class KafkaStreamsApplication {
 
     }
 
-    private static Topology createTopology() {
+    public static Properties configuration() {
+        final Properties settings = new Properties();
+        settings.put(StreamsConfig.APPLICATION_ID_CONFIG, UUID.randomUUID().toString());
+        settings.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
+        settings.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
+        settings.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
+        settings.put(StreamsConfig.APPLICATION_SERVER_CONFIG, APPLICATION_SERVER);
+        // TODO 06
+        settings.put(StreamsConfig.PROCESSING_GUARANTEE_CONFIG, StreamsConfig.AT_LEAST_ONCE);
+        return settings;
+    }
+
+    public static Topology createTopology(String schemaRegistryUrl) {
         // Avro Configuration
-        final Map<String, String> serdeConfig = Collections.singletonMap("schema.registry.url", "http://schema-registry:8081");
+        final Map<String, String> serdeConfig = Collections.singletonMap("schema.registry.url", schemaRegistryUrl);
 
         final Serde<User> userSerde = new SpecificAvroSerde<>();
         userSerde.configure(serdeConfig, false);

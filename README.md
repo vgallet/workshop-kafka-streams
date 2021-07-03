@@ -141,4 +141,13 @@ To do that, simply update the settings of the application to use the semantics `
 
 Go to the class `UserBalanceServer` and complete the method `userBalance` to query the local store `balanceStore` and return the balance of the user.
 
+Then you can run a curl command to test it. For example:
+
+```
+curl http://localhost:9090/state/balance/Hugo
+```
+
 ### TODO 08 - Unit Testing
+
+Go to the test class `KafkaStreamsApplicationTest`, using the method `createInputTopic` on `topologyTestDriver` create an instance of `TestInputTopic` to produce the two instances of bankTransfer `firstBankTransfer` and `secondBankTransfer`.
+Then, using the method `createOutputTopic` create an instance of `TestOutputTopic` to assert that the records produced are correctly filtered.
