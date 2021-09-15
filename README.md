@@ -1,10 +1,10 @@
 # Workshop KafkaStreams
 
-You work for a financial institution and we're going to use [Kafka Streams](https://kafka.apache.org/documentation/streams/) to work with financial operations.
+You work for a financial institution and you're going to use [Kafka Streams](https://kafka.apache.org/documentation/streams/) to work with financial operations.
 
 ## Start the Apache Kafka Cluster
 
-The docker-compose file contains an Apache Kafka cluster, a SchemaRegistry and a console AKHQ.
+The docker-compose file contains an Apache Kafka cluster, a Schema Registry component and a console AKHQ.
 
 Run the command
 
@@ -20,7 +20,7 @@ Go to the topics view, you should see three empty topics `user`, `bank-transfer`
 
 ### User
 
-All financial operations are done by between users. Users are simply represented with a name and a location.
+All financial operations are done between two users. Users are simply represented with a name and a location.
 You can take a look at the file [users.csv](java-producer/src/main/resources/users.csv).
 
 ```
@@ -30,8 +30,7 @@ Noémie;Lille
 ...
 ```
 
-All the users are contained is the topic `user` and send using an [Apache Avro](https://avro.apache.org/) producer. 
-An user is represented with Apache Avro schema: [user.avsc](java-producer/src/main/avro/user.avsc).
+A user is represented with an Apache Avro schema: [user.avsc](java-producer/src/main/avro/user.avsc).
 
 ```
 {"namespace": "bank.transfer.avro",
@@ -46,7 +45,7 @@ An user is represented with Apache Avro schema: [user.avsc](java-producer/src/ma
 
 ### Bank Transfer
 
-A bank transfer is an operation when an user, a credit send an amount of money to another user, a debtor.
+A bank transfer is an operation when a user sent an amount of money to another user.
 This operation take place in a location at a date.
 
 A bank transfer is represented with Apache Avro schema: [banktransfer.avsc](java-producer/src/main/avro/banktransfer.avsc).
@@ -109,7 +108,7 @@ mvn clean compile exec:java
 
 The business team wants you to alert the users a bank transfert is done with an amount higher than 15000€.
 
-In the `kafka-streams-big-amount` project, go to the `TODO 02` and apply the filter operation in order to retain only the operations with an amount higher than 15000€.
+In the `kafka-streams-big-amount` project, go to the `TODO 02` and apply the `filter` operation in order to retain only the operations with an amount higher than 15000€.
 Then, push the result to the topic `alert-huge-amount`.
 
 Once done, go to AKHQ and inspect the content of the topic `alert-huge-amount`. You should only see bank transfert with an amount higher than 15000.
@@ -117,7 +116,7 @@ Once done, go to AKHQ and inspect the content of the topic `alert-huge-amount`. 
 ### TODO 03 - Unit Testing
 
 It can be a pain in the neck to set up a working environment to test a topology. 
-Using Docker and particularly TestContainers the work can be reduced, however you can unit test your topology using `kafka-streams-test-utils`.
+Using Docker and particularly TestContainers the work can be reduced, however you can unit test your topology using the library `kafka-streams-test-utils`.
 
 In the `kafka-streams-big-amount` project, go to the test class `KafkaStreamsApplicationAlertBigAmountTest`, using the method `createInputTopic` on `topologyTestDriver` create an instance of `TestInputTopic` to produce the two instances of bankTransfer `firstBankTransfer` and `secondBankTransfer`.
 Then, using the method `createOutputTopic` create an instance of `TestOutputTopic` to assert that the records produced are correctly filtered.
@@ -127,11 +126,11 @@ Then, using the method `createOutputTopic` create an instance of `TestOutputTopi
 If a user is doing a lot of operations in a short amount of time, it can be a potential fraud or a bot for example. The business team wants you to count how many operations a user is doing in a time window of 3 seconds.
 
 In the project `kafka-streams-number-operations`, go to the `KafkaStreamsApplicationNumberOperations` class. 
-Using the `groupByKey` operation and the `windowedBy` operation, compute if an user is doing more than 2 operations in a time window of 3 seconds, push the result to the topic `alert-too-much-operations`.
+Using the `groupByKey` operation and the `windowedBy` operation, compute if a user is doing more than 2 operations in a time window of 3 seconds, push the result to the topic `alert-too-much-operations`.
 
 ### TODO 05 - Alert on different location
 
-As you can see a bank transfer is done in a location and an user has also a specified location.
+As you can see a bank transfer is done with a location and a user has also a specified location.
 The business team wants to alert the user is a bank transfer is done in a different location.
 
 In the `kafka-streams-different-location` project, go to the test class `KafkaStreamsApplicationDifferentLocation`.
@@ -142,7 +141,7 @@ You will be able to compare the two locations. If the two locations are differen
 
 One important feature is to compute the balance of each users. The business team wants to know the exact balance for each users in real time.
 
-In the `kafka-streams-different-location` project, go to the test class `KafkaStreamsApplicationUserBalance`.
+In the `kafka-streams-user-balance` project, go to the test class `KafkaStreamsApplicationUserBalance`.
 Using the operator `flatMap`, split each `bankTransfert` into two `UserOperation`. One for the debtor and one for the credit.
 Next, `groupBy` those operations and `aggregate` them to compute each user balance. Once done, store it into a `Materialized` view using the object `balanceStore`.
 Finally, push the user balance into the `user-balance` topic.
