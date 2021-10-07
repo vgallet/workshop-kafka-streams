@@ -1,71 +1,73 @@
 ---
 version: '2'
 services:
+
   zookeeper:
-    image: confluentinc/cp-zookeeper:6.0.0-1-ubi8
-    restart: always
+    image: confluentinc/cp-zookeeper:5.5.1
+    hostname: zookeeper
     container_name: zookeeper
-    ports:
-      - 2181:2181
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
 
-  kafka:
-    image: confluentinc/cp-enterprise-kafka:6.0.0-1-ubi8
-    restart: always
-    container_name: kafka
+  broker:
+    image: confluentinc/cp-kafka:5.5.1
+    hostname: broker
+    container_name: broker
+    depends_on:
+      - zookeeper
     ports:
-      - 9092:9092
+      - "29092:29092"
+      - "9092:9092"
+      - "9101:9101"
     environment:
-      KAFKA_BROKER_ID: 101
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: "kafka:9092"
-      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
-
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_JMX_PORT: 9101
 
   schema-registry:
-    image: confluentinc/cp-schema-registry:6.0.0-1-ubi8
-    restart: always
+    image: confluentinc/cp-schema-registry:5.5.1
+    hostname: schema-registry
     container_name: schema-registry
+    depends_on:
+      - zookeeper
+      - broker
     ports:
       - "8081:8081"
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
-      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'kafka:9092'
-      KAFKA_REST_CUB_KAFKA_TIMEOUT: 180 # https://github.com/confluentinc/cp-docker-images/issues/807
+      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: 'zookeeper:2181'
 
   create-topics:
     image: confluentinc/cp-enterprise-kafka:6.0.0-1-ubi8
     container_name: create-topics
     command: "bash -c 'echo Waiting for Kafka to be ready... && \
-      cub kafka-ready -b kafka:9092 1 300 && \
+      cub kafka-ready -b broker:29092 1 300 && \
       echo Creating topics... && \
-      kafka-topics --bootstrap-server kafka:9092 --create --topic bank-transfer --partitions 3 --replication-factor 1 && \
-      kafka-topics --bootstrap-server kafka:9092 --create --topic alert-huge-amount --partitions 3 --replication-factor 1 && \
-      kafka-topics --bootstrap-server kafka:9092 --create --topic alert-too-much-operations --partitions 3 --replication-factor 1 && \
-      kafka-topics --bootstrap-server kafka:9092 --create --topic alert-different-location --partitions 3 --replication-factor 1 && \
-      kafka-topics --bootstrap-server kafka:9092 --create --topic bank-transfer-user --partitions 3 --replication-factor 1 && \
-      kafka-topics --bootstrap-server kafka:9092 --create --topic user-balance --partitions 3 --replication-factor 1 --config cleanup.policy=compact && \
-      kafka-topics --bootstrap-server kafka:9092 --create --topic user --partitions 3 --replication-factor 1 --config cleanup.policy=compact'"
+      kafka-topics --bootstrap-server broker:29092 --create --topic bank-transfer --partitions 3 --replication-factor 1 && \
+      kafka-topics --bootstrap-server broker:29092 --create --topic alert-huge-amount --partitions 3 --replication-factor 1 && \
+      kafka-topics --bootstrap-server broker:29092 --create --topic alert-too-much-operations --partitions 3 --replication-factor 1 && \
+      kafka-topics --bootstrap-server broker:29092 --create --topic alert-different-location --partitions 3 --replication-factor 1 && \
+      kafka-topics --bootstrap-server broker:29092 --create --topic bank-transfer-user --partitions 3 --replication-factor 1 && \
+      kafka-topics --bootstrap-server broker:29092 --create --topic user-balance --partitions 3 --replication-factor 1 --config cleanup.policy=compact && \
+      kafka-topics --bootstrap-server broker:29092 --create --topic user --partitions 3 --replication-factor 1 --config cleanup.policy=compact'"
 
   akhq:
-    image: tchiotludo/akhq:latest
-    hostname: akhq
+    image: tchiotludo/akhq
+    ports:
+      - "8000:8080"
     environment:
       AKHQ_CONFIGURATION: |
         akhq:
           connections:
             docker-kafka-server:
               properties:
-                bootstrap.servers: "kafka:9092"
+                bootstrap.servers: "broker:29092"
               schema-registry:
-                url: "http://schema-registry:8081"
-                type: "confluent"
-    ports:
-      - 8080:8080
+                url: "http://localhost:8081"

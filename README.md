@@ -64,6 +64,12 @@ A bank transfer is represented with Apache Avro schema: [banktransfer.avsc](java
 }
 ```
 
+All Avro schemas are located in the dependency ``. Run this command to install on your local repository this dependency:
+
+```
+mvn clean install
+```
+
 ### Produces the data
 
 Go to the `java-producer` directory and run the command

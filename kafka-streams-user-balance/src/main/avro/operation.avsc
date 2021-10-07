@@ -1,8 +1,0 @@
-{"namespace": "bank.transfer.avro",
-    "type": "record",
-    "name": "UserOperation",
-    "fields": [
-        {"name": "client", "type": "string"},
-        {"name": "amount", "type": "double"}
-    ]
-}

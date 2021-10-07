@@ -26,7 +26,7 @@ public class KafkaStreamsApplicationNumberOperations {
 
         final Properties settings = configuration();
 
-        Topology topology = createTopology("http://schema-registry:8081");
+        Topology topology = createTopology("http://localhost:8081");
         System.out.println(topology.describe());
 
         final KafkaStreams streams = new KafkaStreams(topology, settings);
@@ -44,7 +44,7 @@ public class KafkaStreamsApplicationNumberOperations {
     public static Properties configuration() {
         final Properties settings = new Properties();
         settings.put(StreamsConfig.APPLICATION_ID_CONFIG, UUID.randomUUID().toString());
-        settings.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
+        settings.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         settings.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         settings.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         settings.put(StreamsConfig.APPLICATION_SERVER_CONFIG, APPLICATION_SERVER);
