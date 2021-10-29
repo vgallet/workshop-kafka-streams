@@ -12,7 +12,7 @@ Run the command
 docker-compose up -d
 ```
 
-Once all containers are up, go to the AKHQ console: [http://localhost:8080](http://localhost:8080/ui).
+Once all containers are up, go to the AKHQ console: [http://localhost:8000](http://localhost:8000/ui).
 
 Go to the topics view, you should see three empty topics `user`, `bank-transfer` and `user-balance`.
 
@@ -78,7 +78,7 @@ Go to the `java-producer` directory and run the command
 mvn clean compile exec:java
 ```
 
-It runs the class `BankTransferProducer` and populated the topics `user`, `bank-transfer`. Take at look at those topics in [AKHQ](http://localhost:8080/ui/docker-kafka-server/topic).
+It runs the class `BankTransferProducer` and populated the topics `user`, `bank-transfer`. Take at look at those topics in [AKHQ](http://localhost:8000/ui/docker-kafka-server/topic).
 You should see exactly 100 entries in the `user` topic and some transfer operations in the `bank-transfer` topic.
 
 

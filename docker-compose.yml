@@ -70,4 +70,4 @@ services:
               properties:
                 bootstrap.servers: "broker:29092"
               schema-registry:
-                url: "http://localhost:8081"
+                url: "http://schema-registry:8081"
