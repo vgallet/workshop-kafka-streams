@@ -20,7 +20,7 @@ Go to the topics view, you should see three empty topics `user`, `bank-transfer`
 
 ### User
 
-All financial operations are done between two users. Users are simply represented with a name and a location.
+All financial operations are done between two users. Users are represented with a name and a location.
 You can take a look at the file [users.csv](java-producer/src/main/resources/users.csv).
 
 ```
@@ -64,7 +64,7 @@ A bank transfer is represented with Apache Avro schema: [banktransfer.avsc](java
 }
 ```
 
-All Avro schemas are located in the dependency ``. Run this command to install on your local repository this dependency:
+All Avro schemas are located in the dependency `kafka-streams-avro-schema`. Run this command to install on your local repository this dependency:
 
 ```
 mvn clean install
