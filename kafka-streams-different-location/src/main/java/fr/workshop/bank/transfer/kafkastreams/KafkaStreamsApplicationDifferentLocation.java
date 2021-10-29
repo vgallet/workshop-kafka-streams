@@ -91,13 +91,6 @@ public class KafkaStreamsApplicationDifferentLocation {
             return bankTransferWithUser;
         };
 
-        bankTransferKStream
-            .join(userTable, bankTransferWithUserJoiner)
-            .through(BANK_TRANSFER_USER_TOPIC, Produced.with(Serdes.String(), bankTransferUserSerde))
-            .filter((key, value) -> !value.getBanktransferLocation().equals(value.getUserCity()))
-            .to(ALERT_DIFFERENT_LOCATION_TOPIC, Produced.with(Serdes.String(), bankTransferUserSerde));
-
-
         return builder.build();
     }
 

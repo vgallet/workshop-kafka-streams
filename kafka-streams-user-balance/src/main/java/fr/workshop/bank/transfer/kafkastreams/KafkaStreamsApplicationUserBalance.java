@@ -93,30 +93,6 @@ public class KafkaStreamsApplicationUserBalance {
                 .withKeySerde(Serdes.String())
                 .withValueSerde(userBalanceSerde);
 
-        bankTransferKStream
-                .flatMap((KeyValueMapper<String, BankTransfer, Iterable<KeyValue<String, UserOperation>>>) (key, value) -> {
-                    UserOperation creditOperation = new UserOperation(value.getCredit(), -value.getAmount());
-                    UserOperation debtorOperation = new UserOperation(value.getDebtor(), value.getAmount());
-
-                    return List.of(
-                            KeyValue.pair(creditOperation.getClient().toString(), creditOperation),
-                            KeyValue.pair(debtorOperation.getClient().toString(), debtorOperation)
-                    );
-                })
-                .groupByKey(Grouped.with(Serdes.String(), userOperationSerde))
-                .aggregate(
-                        () -> null,
-                        (key, value, currentBalance) -> {
-                            if (currentBalance == null) {
-                                return new UserBalance(value.getClient(), value.getAmount());
-                            }
-
-                            currentBalance.setAmount(currentBalance.getAmount() + value.getAmount());
-                            return currentBalance;
-                        }, balanceStore)
-            .toStream()
-            .to(USER_BALANCE_TOPIC, Produced.with(Serdes.String(), userBalanceSerde));
-
         return builder.build();
     }
 

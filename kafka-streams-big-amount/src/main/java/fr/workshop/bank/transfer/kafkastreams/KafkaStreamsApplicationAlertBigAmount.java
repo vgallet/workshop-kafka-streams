@@ -73,13 +73,8 @@ public class KafkaStreamsApplicationAlertBigAmount {
         );
 
         // TODO 01 use the print operation with Printed.toSysOut() argument
-//        bankTransferKStream.print(Printed.toSysOut());
-
 
         // TODO 02
-        bankTransferKStream
-            .filter((key, value) -> value.getAmount() > 15_000)
-            .to(ALERT_HUGE_AMOUNT_TOPIC, Produced.valueSerde(bankTransferSerde));
 
         return builder.build();
     }

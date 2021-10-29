@@ -38,15 +38,6 @@ class KafkaStreamsApplicationAlertBigAmountTest {
         // TODO 03
         try (final TopologyTestDriver topologyTestDriver = new TopologyTestDriver(topology, streamsConfiguration)) {
 
-            final TestInputTopic<String, BankTransfer> input = topologyTestDriver
-                    .createInputTopic(KafkaStreamsApplicationAlertBigAmount.BANK_TRANSFER_TOPIC,
-                            Serdes.String().serializer(),
-                            bankTransferSerde.serializer());
-
-            final TestOutputTopic<String, BankTransfer> outputTopic = topologyTestDriver.createOutputTopic(ALERT_HUGE_AMOUNT_TOPIC,
-                    Serdes.String().deserializer(),
-                    bankTransferSerde.deserializer());
-
             BankTransfer firstBankTransfer = BankTransfer.newBuilder()
                 .setAmount(16_000d)
                 .setCredit("Credit")
@@ -62,14 +53,6 @@ class KafkaStreamsApplicationAlertBigAmountTest {
                 .setLocation("Location")
                 .setDate("date")
             .build();
-
-            input.pipeInput("User", firstBankTransfer);
-            input.pipeInput("User", secondBankTransfer);
-
-
-            assertThat(outputTopic.getQueueSize()).isEqualTo(1);
-            BankTransfer expectedBankTransfer = outputTopic.readValue();
-            assertThat(firstBankTransfer).isEqualTo(expectedBankTransfer);
 
         }
     }
