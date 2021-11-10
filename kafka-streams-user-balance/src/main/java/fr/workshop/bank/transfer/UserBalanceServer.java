@@ -1,9 +1,6 @@
 package fr.workshop.bank.transfer;
-import bank.transfer.avro.UserBalance;
+
 import org.apache.kafka.streams.KafkaStreams;
-import org.apache.kafka.streams.errors.InvalidStateStoreException;
-import org.apache.kafka.streams.state.QueryableStoreTypes;
-import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -38,17 +35,9 @@ public class UserBalanceServer implements Feature {
     @GET
     @Path("/balance/{user}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Double userBalance(@PathParam("user") final String key) throws InterruptedException {
-        try {
-            // TODO 08
-            System.out.println(streams.state());
-            ReadOnlyKeyValueStore<String, UserBalance> keyValueStore = streams.store(BALANCE_VIEW, QueryableStoreTypes.keyValueStore());
-            return keyValueStore.get(key).getAmount();
-        } catch (InvalidStateStoreException ignored) {
-            // store not yet ready for querying
-            Thread.sleep(100);
-            return -1d;
-        }
+    public Double userBalance(@PathParam("user") final String key) {
+        // TODO 08
+        return Double.NEGATIVE_INFINITY;
     }
 
 

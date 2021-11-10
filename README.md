@@ -14,7 +14,14 @@ docker-compose up -d
 
 Once all containers are up, go to the AKHQ console: [http://localhost:8000](http://localhost:8000/ui).
 
-Go to the topics view, you should see three empty topics `user`, `bank-transfer` and `user-balance`.
+Go to the topics view, you should see a few empty topics.
+
+```
+bank-transfer
+user
+user-balance
+...
+```
 
 ## The setup
 
@@ -30,7 +37,7 @@ Noémie;Lille
 ...
 ```
 
-A user is represented with an Apache Avro schema: [user.avsc](java-producer/src/main/avro/user.avsc).
+A user is represented with an Apache Avro schema: [user.avsc](kafka-streams-avro-schema/src/main/avro/user.avsc).
 
 ```
 {"namespace": "bank.transfer.avro",
@@ -46,9 +53,9 @@ A user is represented with an Apache Avro schema: [user.avsc](java-producer/src/
 ### Bank Transfer
 
 A bank transfer is an operation when a user sent an amount of money to another user.
-This operation take place in a location at a date.
+This operation takes place in a location at a date.
 
-A bank transfer is represented with Apache Avro schema: [banktransfer.avsc](java-producer/src/main/avro/banktransfer.avsc).
+A bank transfer is represented with Apache Avro schema: [banktransfer.avsc](kafka-streams-avro-schema/src/main/avro/banktransfer.avsc).
 
 ```
 {"namespace": "bank.transfer.avro",
@@ -132,22 +139,22 @@ Then, using the method `createOutputTopic` create an instance of `TestOutputTopi
 If a user is doing a lot of operations in a short amount of time, it can be a potential fraud or a bot for example. The business team wants you to count how many operations a user is doing in a time window of 3 seconds.
 
 In the project `kafka-streams-number-operations`, go to the `KafkaStreamsApplicationNumberOperations` class. 
-Using the `groupByKey` operation and the `windowedBy` operation, compute if a user is doing more than 2 operations in a time window of 3 seconds, push the result to the topic `alert-too-much-operations`.
+Using the `groupByKey` operation and the `windowedBy` operation, compute if a user is doing at least 2 operations in a time window of 3 seconds, push the result to the topic `alert-too-many-operations`.
 
 ### TODO 05 - Alert on different location
 
 As you can see a bank transfer is done with a location and a user has also a specified location.
-The business team wants to alert the user is a bank transfer is done in a different location.
+The business team wants to alert the user when a bank transfer is done in a different location.
 
-In the `kafka-streams-different-location` project, go to the test class `KafkaStreamsApplicationDifferentLocation`.
+In the `kafka-streams-different-location` project, go to the class `KafkaStreamsApplicationDifferentLocation`.
 Create a `Ktable` from the `user` topic and join it with the `bankTransferKStream` KStream using the `bankTransferWithUserJoiner` joiner.
 You will be able to compare the two locations. If the two locations are different, publish the event to the topic `alert-different-location`.
 
 ### TODO 06 - Compute user balance
 
-One important feature is to compute the balance of each users. The business team wants to know the exact balance for each users in real time.
+One important feature is to compute the balance for each user. The business team wants to know the exact balance for each user in real time.
 
-In the `kafka-streams-user-balance` project, go to the test class `KafkaStreamsApplicationUserBalance`.
+In the `kafka-streams-user-balance` project, go to the class `KafkaStreamsApplicationUserBalance`.
 Using the operator `flatMap`, split each `bankTransfert` into two `UserOperation`. One for the debtor and one for the credit.
 Next, `groupBy` those operations and `aggregate` them to compute each user balance. Once done, store it into a `Materialized` view using the object `balanceStore`.
 Finally, push the user balance into the `user-balance` topic.
