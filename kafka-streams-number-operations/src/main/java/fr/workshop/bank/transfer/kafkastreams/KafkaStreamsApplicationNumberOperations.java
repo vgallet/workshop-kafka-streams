@@ -17,7 +17,7 @@ import java.util.UUID;
 public class KafkaStreamsApplicationNumberOperations {
 
     public static final String ALERT_HUGE_AMOUNT_TOPIC = "alert-huge-amount";
-    public static final String ALERT_TOO_MUCH_OPERATIONS_TOPIC = "alert-too-much-operations";
+    public static final String ALERT_TOO_MANY_OPERATIONS_TOPIC = "alert-too-many-operations";
     public static final String BANK_TRANSFER_TOPIC = "bank-transfer";
     public static final String APPLICATION_SERVER = "localhost:8090";
 

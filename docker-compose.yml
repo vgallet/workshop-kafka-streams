@@ -52,7 +52,7 @@ services:
       echo Creating topics... && \
       kafka-topics --bootstrap-server broker:29092 --create --topic bank-transfer --partitions 3 --replication-factor 1 && \
       kafka-topics --bootstrap-server broker:29092 --create --topic alert-huge-amount --partitions 3 --replication-factor 1 && \
-      kafka-topics --bootstrap-server broker:29092 --create --topic alert-too-much-operations --partitions 3 --replication-factor 1 && \
+      kafka-topics --bootstrap-server broker:29092 --create --topic alert-too-many-operations --partitions 3 --replication-factor 1 && \
       kafka-topics --bootstrap-server broker:29092 --create --topic alert-different-location --partitions 3 --replication-factor 1 && \
       kafka-topics --bootstrap-server broker:29092 --create --topic bank-transfer-user --partitions 3 --replication-factor 1 && \
       kafka-topics --bootstrap-server broker:29092 --create --topic user-balance --partitions 3 --replication-factor 1 --config cleanup.policy=compact && \
