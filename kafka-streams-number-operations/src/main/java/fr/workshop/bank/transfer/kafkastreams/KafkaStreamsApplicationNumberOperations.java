@@ -77,7 +77,7 @@ public class KafkaStreamsApplicationNumberOperations {
             .toStream()
             .filter((key, value) -> value >= 2)
             .map((Windowed<String> key, Long count) -> new KeyValue<>(key.key(), count.toString()))
-            .to(ALERT_TOO_MUCH_OPERATIONS_TOPIC, Produced.with(Serdes.String(), Serdes.String()));
+            .to(ALERT_TOO_MANY_OPERATIONS_TOPIC, Produced.with(Serdes.String(), Serdes.String()));
 
         return builder.build();
     }
