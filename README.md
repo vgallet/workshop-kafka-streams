@@ -134,6 +134,8 @@ Using Docker and particularly TestContainers the work can be reduced, however yo
 In the `kafka-streams-big-amount` project, go to the test class `KafkaStreamsApplicationAlertBigAmountTest`, using the method `createInputTopic` on `topologyTestDriver` create an instance of `TestInputTopic` to produce the two instances of bankTransfer `firstBankTransfer` and `secondBankTransfer`.
 Then, using the method `createOutputTopic` create an instance of `TestOutputTopic` to assert that the records produced are correctly filtered.
 
+Run `mvn test` to ensure the test is passing.
+
 ### TODO 04 - Count the number of operations per user
 
 If a user is doing a lot of operations in a short amount of time, it can be a potential fraud or a bot for example. The business team wants you to count how many operations a user is doing in a time window of 3 seconds.
